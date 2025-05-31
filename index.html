@@ -11,8 +11,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6; /* Light gray background */
             /* Background image added */
-            /* Using a placeholder image for the background */
-            background-image: url('https://placehold.co/1200x800/E0E0E0/333333?text=School+Symbols');
+            background-image: url('https://placehold.co/1920x1080/E0F2F7/000000?text=School+Symbols'); /* Placeholder image for calculator background */
             background-size: cover; /* Cover the entire background */
             background-position: center; /* Center the background image */
             background-repeat: no-repeat; /* Do not repeat the image */
@@ -55,9 +54,10 @@
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
-    <div class="flex flex-col items-center mt-[2cm] mb-[3cm]"> 
-        <img src="https://placehold.co/200x200/A0A0A0/FFFFFF?text=School+Logo" alt="Logo Školy" class="w-48 h-48 mb-2 rounded-full shadow-md">
+    <div class="flex flex-col items-center mt-[2cm] mb-[1cm]">
+        <img src="https://placehold.co/192x192/E0F2F7/000000?text=School+Logo" alt="Logo Školy" class="w-48 h-48 mb-2 rounded-full shadow-md">
         <p class="text-xl font-semibold text-gray-700">ZŠ s MŠ, Námestie Kráľovnej pokoja 4, Prešov </p>
+        <p id="userIdDisplay" class="text-sm text-gray-500 mt-2">Načítavam ID používateľa...</p>
     </div>
 
     <h1 class="text-4xl font-bold italic text-blue-600 mb-8 text-center">Výpočet stupníc a úspešnosti</h1>
@@ -149,7 +149,7 @@
                         </div>
                     </div>
                 </div>
-                <button id="saveScaleBtn" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md" disabled>
+                <button id="saveScaleBtn" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
                     Uložiť stupnicu
                 </button>
                 <p id="scaleSaveMessage" class="text-center text-sm mt-3 text-green-700 hidden">Stupnica uložená!</p>
@@ -163,7 +163,7 @@
                     <input type="number" id="maxPoints" min="1" value="100"
                             class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
                 </div>
-                <button id="calculateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md" disabled>
+                <button id="calculateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
                     Vypočítať stupnicu
                 </button>
                 <p id="pointsErrorMessage" class="text-center text-sm mt-3 text-red-700 hidden">Chyba: Maximálny počet bodov musí byť kladné číslo.</p>
@@ -234,6 +234,7 @@
         const scaleErrorMessage = document.getElementById('scaleErrorMessage');
         const pointsErrorMessage = document.getElementById('pointsErrorMessage');
         const resultsDisplay = document.getElementById('resultsDisplay');
+        const userIdDisplay = document.getElementById('userIdDisplay'); // Element to display user ID
 
         // Get DOM elements for Success Calculator
         const successCalcMaxPointsInput = document.getElementById('successCalcMaxPoints');
@@ -266,17 +267,16 @@
 
         // Function to initialize Firebase and set up authentication listener
         async function initializeFirebase() {
-            console.log("Attempting to initialize Firebase...");
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                console.log("Firebase app and services initialized.");
 
                 // Listen for authentication state changes
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
+                        userIdDisplay.textContent = `ID používateľa: ${userId}`;
                         console.log("User signed in:", userId);
                     } else {
                         // If no user, try to sign in with custom token or anonymously
@@ -284,49 +284,40 @@
                             try {
                                 await signInWithCustomToken(auth, initialAuthToken);
                                 userId = auth.currentUser.uid;
+                                userIdDisplay.textContent = `ID používateľa: ${userId}`;
                                 console.log("Signed in with custom token:", userId);
                             } catch (error) {
                                 console.error("Error signing in with custom token, signing in anonymously:", error);
                                 await signInAnonymously(auth);
                                 userId = auth.currentUser.uid; // Get new anonymous UID
-                                console.log("Signed in anonymously after custom token failure:", userId);
+                                userIdDisplay.textContent = `ID používateľa: ${userId}`;
                             }
                         } else {
                             await signInAnonymously(auth);
                             userId = auth.currentUser.uid;
+                            userIdDisplay.textContent = `ID používateľa: ${userId}`;
                             console.log("Signed in anonymously:", userId);
                         }
                     }
                     isAuthReady = true; // Set flag that authentication is ready
-                    console.log("Authentication state ready. isAuthReady:", isAuthReady, "userId:", userId);
-
                     // Now that auth is ready, try to load the scale
-                    await loadScale(); // Ensure loadScale completes before enabling buttons
-
-                    // Enable buttons ONLY after auth and initial load are done
-                    saveScaleBtn.disabled = false;
-                    calculateBtn.disabled = false;
-                    console.log("Buttons enabled and ready for interaction.");
+                    await loadScale();
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
                 showMessage(scaleErrorMessage, 'Chyba pri inicializácii Firebase. Skúste znova.', true);
-                // In case of firebase init error, keep buttons disabled
-                saveScaleBtn.disabled = true;
-                calculateBtn.disabled = true;
             }
         }
 
         // Function to load the custom scale from Firestore
         async function loadScale() {
             if (!isAuthReady || !userId) {
-                console.log("Auth not ready or userId not available yet for loading scale. Skipping load.");
+                console.log("Auth not ready or userId not available yet for loading scale.");
                 return;
             }
-            console.log("Attempting to load scale for userId:", userId);
             try {
-                // Construct the document reference for the user's private grading scale
-                const docRef = doc(db, `artifacts/${appId}/users/${userId}/gradingScales`, 'customGradingScale');
+                // Construct the document reference for the public grading scale
+                const docRef = doc(db, `artifacts/${appId}/public/data/gradingScales`, 'customGradingScale');
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -358,7 +349,6 @@
 
         // Event listener for "Vlastná stupnica" button
         customScaleBtn.addEventListener('click', () => {
-            console.log("Custom scale button clicked.");
             // Populate input fields with current customScale values (either loaded or default)
             for (let i = 1; i <= 5; i++) {
                 document.getElementById(`grade${i}_min`).value = customScale[i].min;
@@ -371,7 +361,6 @@
 
         // Event listener for "Uložiť stupnicu" button
         saveScaleBtn.addEventListener('click', async () => { // Make it async
-            console.log("Save scale button clicked. isAuthReady:", isAuthReady, "userId:", userId);
             if (!isAuthReady || !userId) {
                 showMessage(scaleErrorMessage, 'Aplikácia sa ešte inicializuje. Skúste to znova o chvíľu.', true);
                 return;
@@ -414,25 +403,24 @@
 
             // Update custom scale if all validations pass
             customScale = gradesData;
-            console.log("Validated scale data:", customScale);
 
             // Save to Firestore
             try {
-                const docRef = doc(db, `artifacts/${appId}/users/${userId}/gradingScales`, 'customGradingScale');
+                // Save to the public collection
+                const docRef = doc(db, `artifacts/${appId}/public/data/gradingScales`, 'customGradingScale');
                 await setDoc(docRef, customScale); // Use setDoc to create or overwrite the document
-                console.log("Scale successfully saved to Firestore.");
+                console.log("Scale saved to Firestore (public):", customScale);
                 showMessage(scaleSaveMessage, 'Stupnica uložená!');
                 customScaleSection.classList.add('hidden'); // Hide custom scale input
                 testCalculationSection.classList.remove('hidden'); // Show test calculation section
             } catch (error) {
                 console.error("Error saving scale to Firestore:", error);
-                showMessage(scaleErrorMessage, 'Chyba pri ukladaní stupnice do úložiska: ' + error.message, true);
+                showMessage(scaleErrorMessage, 'Chyba pri ukladaní stupnice do úložiska.', true);
             }
         });
 
         // Event listener for "Vypočítať stupnicu" button
         calculateBtn.addEventListener('click', () => {
-            console.log("Calculate scale button clicked.");
             const maxPoints = parseInt(document.getElementById('maxPoints').value);
 
             // Validate max points
@@ -506,7 +494,6 @@
 
         // Event listener for "Vypočítať percento" button in Success Calculator
         calculateSuccessBtn.addEventListener('click', () => {
-            console.log("Calculate success button clicked.");
             const maxPoints = parseInt(successCalcMaxPointsInput.value);
             const achievedPoints = parseInt(successCalcAchievedPointsInput.value);
 
@@ -535,13 +522,8 @@
         resultsDisplay.classList.add('hidden');
         successResultDisplay.classList.add('hidden'); // Hide success calculator result initially
 
-        // Disable buttons initially until Firebase is ready
-        saveScaleBtn.disabled = true;
-        calculateBtn.disabled = true;
-        console.log("Buttons initially disabled.");
-
-        // Call initializeFirebase directly
-        initializeFirebase();
+        // Call initializeFirebase when the window loads
+        window.onload = initializeFirebase;
 
     </script>
     <footer class="päta">    
