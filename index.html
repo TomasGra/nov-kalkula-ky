@@ -266,10 +266,12 @@
 
         // Function to initialize Firebase and set up authentication listener
         async function initializeFirebase() {
+            console.log("Attempting to initialize Firebase...");
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                console.log("Firebase app and services initialized.");
 
                 // Listen for authentication state changes
                 onAuthStateChanged(auth, async (user) => {
@@ -287,6 +289,7 @@
                                 console.error("Error signing in with custom token, signing in anonymously:", error);
                                 await signInAnonymously(auth);
                                 userId = auth.currentUser.uid; // Get new anonymous UID
+                                console.log("Signed in anonymously after custom token failure:", userId);
                             }
                         } else {
                             await signInAnonymously(auth);
@@ -295,24 +298,32 @@
                         }
                     }
                     isAuthReady = true; // Set flag that authentication is ready
-                    // Enable buttons after auth is ready
+                    console.log("Authentication state ready. isAuthReady:", isAuthReady, "userId:", userId);
+
+                    // Now that auth is ready, try to load the scale
+                    await loadScale(); // Ensure loadScale completes before enabling buttons
+
+                    // Enable buttons ONLY after auth and initial load are done
                     saveScaleBtn.disabled = false;
                     calculateBtn.disabled = false;
-                    // Now that auth is ready, try to load the scale
-                    await loadScale();
+                    console.log("Buttons enabled and ready for interaction.");
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
                 showMessage(scaleErrorMessage, 'Chyba pri inicializácii Firebase. Skúste znova.', true);
+                // In case of firebase init error, keep buttons disabled
+                saveScaleBtn.disabled = true;
+                calculateBtn.disabled = true;
             }
         }
 
         // Function to load the custom scale from Firestore
         async function loadScale() {
             if (!isAuthReady || !userId) {
-                console.log("Auth not ready or userId not available yet for loading scale.");
+                console.log("Auth not ready or userId not available yet for loading scale. Skipping load.");
                 return;
             }
+            console.log("Attempting to load scale for userId:", userId);
             try {
                 // Construct the document reference for the user's private grading scale
                 const docRef = doc(db, `artifacts/${appId}/users/${userId}/gradingScales`, 'customGradingScale');
@@ -347,6 +358,7 @@
 
         // Event listener for "Vlastná stupnica" button
         customScaleBtn.addEventListener('click', () => {
+            console.log("Custom scale button clicked.");
             // Populate input fields with current customScale values (either loaded or default)
             for (let i = 1; i <= 5; i++) {
                 document.getElementById(`grade${i}_min`).value = customScale[i].min;
@@ -359,9 +371,8 @@
 
         // Event listener for "Uložiť stupnicu" button
         saveScaleBtn.addEventListener('click', async () => { // Make it async
+            console.log("Save scale button clicked. isAuthReady:", isAuthReady, "userId:", userId);
             if (!isAuthReady || !userId) {
-                // This message should ideally not be shown if the button is disabled
-                // but kept as a fallback.
                 showMessage(scaleErrorMessage, 'Aplikácia sa ešte inicializuje. Skúste to znova o chvíľu.', true);
                 return;
             }
@@ -403,23 +414,25 @@
 
             // Update custom scale if all validations pass
             customScale = gradesData;
+            console.log("Validated scale data:", customScale);
 
             // Save to Firestore
             try {
                 const docRef = doc(db, `artifacts/${appId}/users/${userId}/gradingScales`, 'customGradingScale');
                 await setDoc(docRef, customScale); // Use setDoc to create or overwrite the document
-                console.log("Scale saved to Firestore:", customScale);
+                console.log("Scale successfully saved to Firestore.");
                 showMessage(scaleSaveMessage, 'Stupnica uložená!');
                 customScaleSection.classList.add('hidden'); // Hide custom scale input
                 testCalculationSection.classList.remove('hidden'); // Show test calculation section
             } catch (error) {
                 console.error("Error saving scale to Firestore:", error);
-                showMessage(scaleErrorMessage, 'Chyba pri ukladaní stupnice do úložiska.', true);
+                showMessage(scaleErrorMessage, 'Chyba pri ukladaní stupnice do úložiska: ' + error.message, true);
             }
         });
 
         // Event listener for "Vypočítať stupnicu" button
         calculateBtn.addEventListener('click', () => {
+            console.log("Calculate scale button clicked.");
             const maxPoints = parseInt(document.getElementById('maxPoints').value);
 
             // Validate max points
@@ -493,6 +506,7 @@
 
         // Event listener for "Vypočítať percento" button in Success Calculator
         calculateSuccessBtn.addEventListener('click', () => {
+            console.log("Calculate success button clicked.");
             const maxPoints = parseInt(successCalcMaxPointsInput.value);
             const achievedPoints = parseInt(successCalcAchievedPointsInput.value);
 
@@ -524,6 +538,7 @@
         // Disable buttons initially until Firebase is ready
         saveScaleBtn.disabled = true;
         calculateBtn.disabled = true;
+        console.log("Buttons initially disabled.");
 
         // Call initializeFirebase directly
         initializeFirebase();
