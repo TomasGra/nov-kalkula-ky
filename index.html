@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Výpočet stupníc a úspešnosti</title>
+    <script src="https://github.com/TomasGra/nov-kalkula-ky.git"></script>
+    <style>
+        /* Custom font for better aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            /* Background image added */
+            background-image: url('symboly školy.jpg'); /* Placeholder image for calculator background */
+            background-size: cover; /* Cover the entire background */
+            background-position: center; /* Center the background image */
+            background-repeat: no-repeat; /* Do not repeat the image */
+            background-attachment: fixed; /* Keep the background fixed when scrolling */
+        }
+        /* Hide elements initially */
+        .hidden {
+            display: none;
+        }
+        /* Basic styling for input focus */
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42, 139, 177, 0.5); /* Blue shadow on focus */    
+        }
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* Light gray border */
+        }
+        th {
+            background-color: #f9fafb; /* Lighter background for headers */
+            font-weight: 600;
+            color: #4b5563; /* Darker text for headers */
+        }
+        tr:last-child td {
+            border-bottom: none; /* No border for the last row */
+        }
+        .päta{
+            text-align: center;
+            color: #6b7280; /* Gray text for footer */
+            font-size: 1.2rem; /* Smaller text size */
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="flex flex-col items-center mt-[2cm] mb-[3cm]"> <img src="logo škola.jpg" alt="Logo Školy" class="w-48 h-48 mb-2 rounded-full shadow-md">
+        <p class="text-xl font-semibold text-gray-700">ZŠ s MŠ, Námestie Kráľovnej pokoja 4, Prešov </p>
+    </div>
+
+    <h1 class="text-4xl font-bold italic text-blue-600 mb-8 text-center">Výpočet stupníc a úspešnosti</h1>
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-5xl flex flex-col md:flex-row md:space-x-8">
+        <div class="flex-1 mb-4 md:mb-0">
+            <button id="customScaleBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                Vlastná stupnica
+            </button>
+
+            <div id="customScaleSection" class="hidden mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Definovať percentuálnu stupnicu</h2>
+                <p class="text-sm text-gray-600 mb-4 text-center">Zadajte minimálne a maximálne percento pre každú známku.</p>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">1:</label>
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <label for="grade1_min" class="block text-gray-600 text-xs mb-1">Min. %:</label>
+                                <input type="number" id="grade1_min" min="0" max="100" value="90"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                            <div class="flex-1">
+                                <label for="grade1_max" class="block text-gray-600 text-xs mb-1">Max. %:</label>
+                                <input type="number" id="grade1_max" min="0" max="100" value="100"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">2:</label>
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <label for="grade2_min" class="block text-gray-600 text-xs mb-1">Min. %:</label>
+                                <input type="number" id="grade2_min" min="0" max="100" value="80"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                            <div class="flex-1">
+                                <label for="grade2_max" class="block text-gray-600 text-xs mb-1">Max. %:</label>
+                                <input type="number" id="grade2_max" min="0" max="100" value="89"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">3:</label>
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <label for="grade3_min" class="block text-gray-600 text-xs mb-1">Min. %:</label>
+                                <input type="number" id="grade3_min" min="0" max="100" value="65"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                            <div class="flex-1">
+                                <label for="grade3_max" class="block text-gray-600 text-xs mb-1">Max. %:</label>
+                                <input type="number" id="grade3_max" min="0" max="100" value="79"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">4:</label>
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <label for="grade4_min" class="block text-gray-600 text-xs mb-1">Min. %:</label>
+                                <input type="number" id="grade4_min" min="0" max="100" value="50"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                            <div class="flex-1">
+                                <label for="grade4_max" class="block text-gray-600 text-xs mb-1">Max. %:</label>
+                                <input type="number" id="grade4_max" min="0" max="100" value="64"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">5:</label>
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <label for="grade5_min" class="block text-gray-600 text-xs mb-1">Min. %:</label>
+                                <input type="number" id="grade5_min" min="0" max="100" value="0"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                            <div class="flex-1">
+                                <label for="grade5_max" class="block text-gray-600 text-xs mb-1">Max. %:</label>
+                                <input type="number" id="grade5_max" min="0" max="100" value="49"
+                                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="saveScaleBtn" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                    Uložiť stupnicu
+                </button>
+                <p id="scaleSaveMessage" class="text-center text-sm mt-3 text-green-700 hidden">Stupnica uložená!</p>
+                <p id="scaleErrorMessage" class="text-center text-sm mt-3 text-red-700 hidden">Chyba: Percentá musia byť v zostupnom poradí a v rozsahu 0-100.</p>
+            </div>
+
+            <div id="testCalculationSection" class="hidden mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Výpočet bodovej stupnice</h2>
+                <div class="mb-4">
+                    <label for="maxPoints" class="block text-gray-700 text-sm font-bold mb-2">Maximálny počet bodov z testu:</label>
+                    <input type="number" id="maxPoints" min="1" value="100"
+                           class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+                </div>
+                <button id="calculateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                    Vypočítať stupnicu
+                </button>
+                <p id="pointsErrorMessage" class="text-center text-sm mt-3 text-red-700 hidden">Chyba: Maximálny počet bodov musí byť kladné číslo.</p>
+
+                <div id="resultsDisplay" class="mt-6 hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Bodová stupnica:</h3>
+                    <table class="min-w-full bg-white rounded-lg shadow-sm" id="gradeResultsTable">
+                        <thead>
+                            <tr>
+                                <th class="py-2 px-4 border-b">Známka</th>
+                                <th class="py-2 px-4 border-b">Počet bodov</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradeResultsBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 p-6 bg-gray-50 rounded-lg border border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Kalkulačka úspešnosti</h2>
+            <div class="mb-4">
+                <label for="successCalcMaxPoints" class="block text-gray-700 text-sm font-bold mb-2">Maximálny počet bodov:</label>
+                <input type="number" id="successCalcMaxPoints" min="1" value=""
+                       placeholder="Zadajte maximálny počet bodov"
+                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+            </div>
+            <div class="mb-4">
+                <label for="successCalcAchievedPoints" class="block text-gray-700 text-sm font-bold mb-2">Dosiahnutý počet bodov:</label>
+                <input type="number" id="successCalcAchievedPoints" min="0" value=""
+                       placeholder="Zadajte dosiahnutý počet bodov"
+                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-300">
+            </div>
+            <button id="calculateSuccessBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                Vypočítať percento
+            </button>
+            <p id="successCalcErrorMessage" class="text-center text-sm mt-3 text-red-700 hidden"></p>
+            <div id="successResultDisplay" class="mt-6 hidden">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Výsledok:</h3>
+                <p id="percentageResult" class="text-2xl font-bold text-blue-700 text-center"></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase configuration (provided by the environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app, db, auth, userId;
+        let isAuthReady = false; // Flag to ensure Firestore operations wait for auth
+
+        // Get DOM elements for Grading Scale Calculator
+        const customScaleBtn = document.getElementById('customScaleBtn');
+        const customScaleSection = document.getElementById('customScaleSection');
+        const testCalculationSection = document.getElementById('testCalculationSection');
+        const saveScaleBtn = document.getElementById('saveScaleBtn');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const gradeResultsBody = document.getElementById('gradeResultsBody');
+        const scaleSaveMessage = document.getElementById('scaleSaveMessage');
+        const scaleErrorMessage = document.getElementById('scaleErrorMessage');
+        const pointsErrorMessage = document.getElementById('pointsErrorMessage');
+        const resultsDisplay = document.getElementById('resultsDisplay');
+
+        // Get DOM elements for Success Calculator
+        const successCalcMaxPointsInput = document.getElementById('successCalcMaxPoints');
+        const successCalcAchievedPointsInput = document.getElementById('successCalcAchievedPoints');
+        const calculateSuccessBtn = document.getElementById('calculateSuccessBtn');
+        const successCalcErrorMessage = document.getElementById('successCalcErrorMessage');
+        const successResultDisplay = document.getElementById('successResultDisplay');
+        const percentageResult = document.getElementById('percentageResult');
+
+
+        // Store the custom grading scale with min/max percentages (default values)
+        let customScale = {
+            1: { min: 90, max: 100 },
+            2: { min: 80, max: 89 },
+            3: { min: 65, max: 79 },
+            4: { min: 50, max: 64 },
+            5: { min: 0, max: 49 }
+        };
+
+        // Function to show a message (replaces alert)
+        function showMessage(element, message, isError = false) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            element.classList.toggle('text-red-700', isError);
+            element.classList.toggle('text-green-700', !isError);
+            setTimeout(() => {
+                element.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Function to initialize Firebase and set up authentication listener
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listen for authentication state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("User signed in:", userId);
+                    } else {
+                        // If no user, try to sign in with custom token or anonymously
+                        if (initialAuthToken) {
+                            try {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                                userId = auth.currentUser.uid;
+                                console.log("Signed in with custom token:", userId);
+                            } catch (error) {
+                                console.error("Error signing in with custom token, signing in anonymously:", error);
+                                await signInAnonymously(auth);
+                                userId = auth.currentUser.uid; // Get new anonymous UID
+                            }
+                        } else {
+                            await signInAnonymously(auth);
+                            userId = auth.currentUser.uid;
+                            console.log("Signed in anonymously:", userId);
+                        }
+                    }
+                    isAuthReady = true; // Set flag that authentication is ready
+                    // Now that auth is ready, try to load the scale
+                    await loadScale();
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                showMessage(scaleErrorMessage, 'Chyba pri inicializácii Firebase. Skúste znova.', true);
+            }
+        }
+
+        // Function to load the custom scale from Firestore
+        async function loadScale() {
+            if (!isAuthReady || !userId) {
+                console.log("Auth not ready or userId not available yet for loading scale.");
+                return;
+            }
+            try {
+                // Construct the document reference for the user's private grading scale
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/gradingScales`, 'customGradingScale');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    customScale = docSnap.data();
+                    console.log("Loaded scale from Firestore:", customScale);
+                    // Populate input fields with loaded values
+                    for (let i = 1; i <= 5; i++) {
+                        document.getElementById(`grade${i}_min`).value = customScale[i].min;
+                        document.getElementById(`grade${i}_max`).value = customScale[i].max;
+                    }
+                    showMessage(scaleSaveMessage, 'Stupnica načítaná z úložiska.');
+                    // Show the test calculation section after loading
+                    testCalculationSection.classList.remove('hidden');
+                } else {
+                    console.log("No custom scale found in Firestore, using default.");
+                    showMessage(scaleSaveMessage, 'Používa sa predvolená stupnica. Uložte vlastnú.', false);
+                    // Ensure default values are populated if no saved scale
+                    for (let i = 1; i <= 5; i++) {
+                        document.getElementById(`grade${i}_min`).value = customScale[i].min;
+                        document.getElementById(`grade${i}_max`).value = customScale[i].max;
+                    }
+                    testCalculationSection.classList.remove('hidden'); // Still show this section
+                }
+            } catch (error) {
+                console.error("Error loading scale from Firestore:", error);
+                showMessage(scaleErrorMessage, 'Chyba pri načítaní stupnice z úložiska.', true);
+            }
+        }
+
+        // Event listener for "Vlastná stupnica" button
+        customScaleBtn.addEventListener('click', () => {
+            // Populate input fields with current customScale values (either loaded or default)
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`grade${i}_min`).value = customScale[i].min;
+                document.getElementById(`grade${i}_max`).value = customScale[i].max;
+            }
+            customScaleSection.classList.toggle('hidden'); // Toggle visibility
+            testCalculationSection.classList.add('hidden'); // Hide calculation section if open
+            resultsDisplay.classList.add('hidden'); // Hide results
+        });
+
+        // Event listener for "Uložiť stupnicu" button
+        saveScaleBtn.addEventListener('click', async () => { // Make it async
+            if (!isAuthReady || !userId) {
+                showMessage(scaleErrorMessage, 'Aplikácia sa ešte inicializuje. Skúste to znova o chvíľu.', true);
+                return;
+            }
+
+            const gradesData = {};
+            for (let i = 1; i <= 5; i++) {
+                const minVal = parseInt(document.getElementById(`grade${i}_min`).value);
+                const maxVal = parseInt(document.getElementById(`grade${i}_max`).value);
+
+                // Basic validation: must be numbers, within 0-100, and min <= max
+                if (isNaN(minVal) || isNaN(maxVal) || minVal < 0 || maxVal > 100 || minVal > maxVal) {
+                    showMessage(scaleErrorMessage, 'Chyba: Všetky percentá musia byť platné čísla (0-100) a min <= max pre každú známku.', true);
+                    return;
+                }
+                gradesData[i] = { min: minVal, max: maxVal };
+            }
+
+            // Advanced validation for a continuous and ordered grading scale
+            // Grade 1 max must be 100
+            if (gradesData[1].max !== 100) {
+                showMessage(scaleErrorMessage, 'Chyba: Maximálne percento pre známku 1 musí byť 100.', true);
+                return;
+            }
+            // Grade 5 min must be 0
+            if (gradesData[5].min !== 0) {
+                showMessage(scaleErrorMessage, 'Chyba: Minimálne percento pre známku 5 musí byť 0.', true);
+                return;
+            }
+
+            // Check for correct ordering and no overlaps between adjacent grades
+            for (let i = 1; i < 5; i++) {
+                // Ensure the current grade's minimum is strictly greater than the next grade's maximum.
+                // This allows for gaps but prevents overlaps or inverted ranges.
+                if (gradesData[i].min <= gradesData[i+1].max) {
+                    showMessage(scaleErrorMessage, `Chyba: Rozsah známky ${i} sa prekrýva alebo je nižší ako rozsah známky ${i+1}.`, true);
+                    return;
+                }
+            }
+
+            // Update custom scale if all validations pass
+            customScale = gradesData;
+
+            // Save to Firestore
+            try {
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/gradingScales`, 'customGradingScale');
+                await setDoc(docRef, customScale); // Use setDoc to create or overwrite the document
+                console.log("Scale saved to Firestore:", customScale);
+                showMessage(scaleSaveMessage, 'Stupnica uložená!');
+                customScaleSection.classList.add('hidden'); // Hide custom scale input
+                testCalculationSection.classList.remove('hidden'); // Show test calculation section
+            } catch (error) {
+                console.error("Error saving scale to Firestore:", error);
+                showMessage(scaleErrorMessage, 'Chyba pri ukladaní stupnice do úložiska.', true);
+            }
+        });
+
+        // Event listener for "Vypočítať stupnicu" button
+        calculateBtn.addEventListener('click', () => {
+            const maxPoints = parseInt(document.getElementById('maxPoints').value);
+
+            // Validate max points
+            if (isNaN(maxPoints) || maxPoints <= 0) {
+                showMessage(pointsErrorMessage, 'Chyba: Maximálny počet bodov musí byť kladné číslo.', true);
+                resultsDisplay.classList.add('hidden'); // Hide results if error
+                return;
+            }
+
+            // Clear previous results
+            gradeResultsBody.innerHTML = ''; // Clear table body
+
+            // Calculate point thresholds based on min percentages for each grade
+            // This ensures contiguous point ranges
+            const pointThresholds = {};
+            pointThresholds[1] = Math.ceil((customScale[1].min / 100) * maxPoints);
+            pointThresholds[2] = Math.ceil((customScale[2].min / 100) * maxPoints);
+            pointThresholds[3] = Math.ceil((customScale[3].min / 100) * maxPoints);
+            pointThresholds[4] = Math.ceil((customScale[4].min / 100) * maxPoints);
+            pointThresholds[5] = 0; // Grade 5 always starts from 0 points
+
+            // Calculate point-based scale
+            const grades = [1, 2, 3, 4, 5];
+            grades.forEach(grade => {
+                let minPointsForRange, maxPointsForRange;
+
+                if (grade === 1) {
+                    // Grade 1: from its calculated minimum points up to the total max points
+                    minPointsForRange = pointThresholds[1];
+                    maxPointsForRange = maxPoints;
+                } else if (grade === 5) {
+                    // Grade 5: from 0 up to one less than the minimum points of Grade 4
+                    minPointsForRange = pointThresholds[5]; // Which is 0
+                    maxPointsForRange = pointThresholds[4] - 1;
+                } else {
+                    // Intermediate grades: from its calculated minimum points up to one less than the minimum points of the next higher grade
+                    minPointsForRange = pointThresholds[grade];
+                    maxPointsForRange = pointThresholds[grade - 1] - 1;
+                }
+
+                // Ensure the range is displayed from highest to lowest point value
+                let displayMin = Math.min(minPointsForRange, maxPointsForRange);
+                let displayMax = Math.max(minPointsForRange, maxPointsForRange);
+
+                // Special handling for Grade 5 to ensure its max points don't go below 0
+                if (grade === 5) {
+                    displayMax = Math.max(0, displayMax); // Ensure it's not negative
+                    displayMin = 0; // Grade 5 always starts from 0
+                }
+
+                const rangeText = `${displayMax} - ${displayMin}`;
+
+                const tableRow = document.createElement('tr');
+                tableRow.className = 'text-lg text-gray-800';
+
+                const gradeCell = document.createElement('td');
+                gradeCell.className = 'py-2 px-4';
+                gradeCell.textContent = grade;
+
+                const pointsCell = document.createElement('td');
+                pointsCell.className = 'py-2 px-4';
+                pointsCell.textContent = rangeText;
+
+                tableRow.appendChild(gradeCell);
+                tableRow.appendChild(pointsCell);
+                gradeResultsBody.appendChild(tableRow);
+            });
+
+            resultsDisplay.classList.remove('hidden'); // Show results
+        });
+
+        // Event listener for "Vypočítať percento" button in Success Calculator
+        calculateSuccessBtn.addEventListener('click', () => {
+            const maxPoints = parseInt(successCalcMaxPointsInput.value);
+            const achievedPoints = parseInt(successCalcAchievedPointsInput.value);
+
+            // Validate inputs
+            if (isNaN(maxPoints) || maxPoints <= 0 || isNaN(achievedPoints) || achievedPoints < 0) {
+                showMessage(successCalcErrorMessage, 'Chyba: Zadajte platné kladné body pre maximum a nezáporné pre dosiahnuté.', true);
+                successResultDisplay.classList.add('hidden');
+                return;
+            }
+            if (achievedPoints > maxPoints) {
+                showMessage(successCalcErrorMessage, 'Chyba: Dosiahnuté body nemôžu byť vyššie ako maximálne body.', true);
+                successResultDisplay.classList.add('hidden');
+                return;
+            }
+
+            const percentage = (achievedPoints / maxPoints) * 100;
+            percentageResult.textContent = `${percentage.toFixed(2)} %`; // Display with 2 decimal places
+            successResultDisplay.classList.remove('hidden');
+            successCalcErrorMessage.classList.add('hidden'); // Hide any previous error message
+        });
+
+
+        // Initial setup: Hide sections until needed
+        customScaleSection.classList.add('hidden');
+        testCalculationSection.classList.add('hidden');
+        resultsDisplay.classList.add('hidden');
+        successResultDisplay.classList.add('hidden'); // Hide success calculator result initially
+
+        // Call initializeFirebase when the window loads
+        window.onload = initializeFirebase;
+
+    </script>
+    <footer class="päta">   
+            &copy; 2025, PhDr. Tomáš Grančay
+        </footer>
+</body>
+</html>
